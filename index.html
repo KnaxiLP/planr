@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLANR — Knaxi's Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c12;
+    --bg2: #0d1520;
+    --bg3: #111d2e;
+    --panel: #0a1628;
+    --border: #1a3a5c;
+    --cyan: #00d4ff;
+    --cyan2: #0099cc;
+    --cyan-dim: rgba(0,212,255,0.12);
+    --cyan-glow: rgba(0,212,255,0.35);
+    --green: #00ff88;
+    --green-dim: rgba(0,255,136,0.1);
+    --red: #ff3355;
+    --yellow: #ffcc00;
+    --text: #c8dff0;
+    --text-dim: #5a7a99;
+    --text-bright: #e8f4ff;
+    --grid-color: rgba(0,180,255,0.05);
+  }
+
+- { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+font-family: ‘Rajdhani’, sans-serif;
+background: var(–bg);
+color: var(–text);
+height: 100vh;
+overflow: hidden;
+display: flex;
+flex-direction: column;
+}
+
+/* Animated grid background */
+body::before {
+content:’’;
+position:fixed;
+inset:0;
+background-image:
+linear-gradient(var(–grid-color) 1px, transparent 1px),
+linear-gradient(90deg, var(–grid-color) 1px, transparent 1px);
+background-size: 40px 40px;
+pointer-events:none;
+z-index:0;
+}
+
+body::after {
+content:’’;
+position:fixed;
+inset:0;
+background: radial-gradient(ellipse at 20% 50%, rgba(0,100,180,0.07) 0%, transparent 60%),
+radial-gradient(ellipse at 80% 20%, rgba(0,212,255,0.05) 0%, transparent 50%);
+pointer-events:none;
+z-index:0;
+}
+
+/* ── HEADER ── */
+header {
+position: relative;
+z-index: 10;
+display: flex;
+align-items: center;
+gap: 24px;
+padding: 0 24px;
+height: 52px;
+background: rgba(8,12,20,0.95);
+border-bottom: 1px solid var(–border);
+flex-shrink: 0;
+}
+
+.logo {
+font-family: ‘Orbitron’, monospace;
+font-size: 20px;
+font-weight: 900;
+color: var(–cyan);
+letter-spacing: 4px;
+text-shadow: 0 0 20px var(–cyan-glow);
+flex-shrink: 0;
+}
+.logo span { color: var(–text-dim); font-size: 11px; font-weight: 400; display:block; letter-spacing: 2px; margin-top:-2px; }
+
+.header-divider { width:1px; height:28px; background: var(–border); }
+
+nav { display:flex; gap:4px; flex:1; }
+nav button {
+font-family: ‘Rajdhani’, sans-serif;
+font-size: 13px;
+font-weight: 600;
+letter-spacing: 1.5px;
+text-transform: uppercase;
+padding: 6px 16px;
+background: transparent;
+border: 1px solid transparent;
+color: var(–text-dim);
+cursor: pointer;
+border-radius: 3px;
+transition: all 0.2s;
+display: flex;
+align-items: center;
+gap: 7px;
+position: relative;
+}
+nav button .nav-icon { font-size: 14px; }
+nav button:hover { color: var(–cyan); border-color: rgba(0,212,255,0.25); background: var(–cyan-dim); }
+nav button.active {
+color: var(–cyan);
+border-color: var(–cyan2);
+background: var(–cyan-dim);
+box-shadow: 0 0 12px rgba(0,212,255,0.2), inset 0 0 12px rgba(0,212,255,0.05);
+}
+nav button.active::after {
+content:’’;
+position:absolute;
+bottom:-1px; left:10%; right:10%;
+height:2px;
+background: var(–cyan);
+box-shadow: 0 0 8px var(–cyan);
+}
+
+.header-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
+.status-dot { width:7px; height:7px; border-radius:50%; background:var(–green); box-shadow: 0 0 8px var(–green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.status-text { font-family:‘Share Tech Mono’; font-size:11px; color:var(–text-dim); }
+.time-display { font-family:‘Share Tech Mono’; font-size:13px; color:var(–cyan); letter-spacing:1px; }
+
+/* ── MAIN LAYOUT ── */
+.app { display:flex; flex:1; overflow:hidden; position:relative; z-index:1; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+width: 220px;
+background: rgba(10,22,40,0.95);
+border-right: 1px solid var(–border);
+display: flex;
+flex-direction: column;
+flex-shrink: 0;
+overflow-y: auto;
+}
+
+.sidebar-section { padding: 16px 12px 8px; }
+.sidebar-label {
+font-family: ‘Share Tech Mono’;
+font-size: 10px;
+color: var(–text-dim);
+letter-spacing: 2px;
+padding: 0 4px 8px;
+border-bottom: 1px solid rgba(26,58,92,0.5);
+margin-bottom: 8px;
+}
+
+.project-item {
+display: flex;
+align-items: center;
+gap: 9px;
+padding: 7px 8px;
+border-radius: 4px;
+cursor: pointer;
+font-size: 13px;
+font-weight: 500;
+color: var(–text-dim);
+border: 1px solid transparent;
+transition: all 0.15s;
+margin-bottom: 2px;
+}
+.project-item:hover { background: var(–cyan-dim); color: var(–text); border-color: rgba(0,212,255,0.15); }
+.project-item.active { background: var(–cyan-dim); color: var(–cyan); border-color: rgba(0,212,255,0.3); }
+.project-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.project-badge { margin-left:auto; font-size:10px; font-family:‘Share Tech Mono’; background:rgba(0,212,255,0.15); color:var(–cyan); padding:1px 6px; border-radius:10px; }
+
+.add-project-btn {
+width:100%; padding:7px 8px; background:transparent; border:1px dashed rgba(26,58,92,0.8);
+color:var(–text-dim); font-family:‘Rajdhani’; font-size:12px; font-weight:600;
+letter-spacing:1px; cursor:pointer; border-radius:4px; transition:all 0.2s;
+display:flex; align-items:center; gap:6px;
+}
+.add-project-btn:hover { border-color:var(–cyan2); color:var(–cyan); background:var(–cyan-dim); }
+
+/* ── CONTENT ── */
+.content { flex:1; overflow:hidden; display:flex; flex-direction:column; }
+
+.view { display:none; flex:1; overflow:hidden; flex-direction:column; }
+.view.active { display:flex; }
+
+/* ── VIEW HEADER ── */
+.view-header {
+padding: 16px 24px 12px;
+border-bottom: 1px solid var(–border);
+display: flex;
+align-items: center;
+gap: 16px;
+flex-shrink: 0;
+}
+.view-title {
+font-family: ‘Orbitron’, monospace;
+font-size: 14px;
+font-weight: 700;
+color: var(–text-bright);
+letter-spacing: 2px;
+}
+.view-subtitle { font-size: 12px; color: var(–text-dim); margin-left:4px; }
+.view-actions { margin-left:auto; display:flex; gap:8px; }
+
+.btn {
+font-family: ‘Rajdhani’, sans-serif;
+font-size: 12px;
+font-weight: 600;
+letter-spacing: 1px;
+text-transform: uppercase;
+padding: 6px 14px;
+border-radius: 3px;
+cursor: pointer;
+transition: all 0.2s;
+display: flex;
+align-items: center;
+gap: 6px;
+}
+.btn-primary {
+background: rgba(0,212,255,0.15);
+border: 1px solid var(–cyan2);
+color: var(–cyan);
+}
+.btn-primary:hover { background:rgba(0,212,255,0.25); box-shadow:0 0 12px rgba(0,212,255,0.3); }
+.btn-ghost {
+background: transparent;
+border: 1px solid var(–border);
+color: var(–text-dim);
+}
+.btn-ghost:hover { border-color:var(–cyan2); color:var(–cyan); }
+.btn-danger {
+background: rgba(255,51,85,0.1);
+border: 1px solid rgba(255,51,85,0.4);
+color: var(–red);
+}
+.btn-danger:hover { background:rgba(255,51,85,0.2); }
+
+/* ══════════════════════════════════
+TODO VIEW
+══════════════════════════════════ */
+.todo-content { flex:1; overflow-y:auto; padding:20px 24px; }
+
+.todo-filter-bar {
+display:flex; gap:8px; margin-bottom:16px;
+}
+.filter-chip {
+font-family:‘Rajdhani’; font-size:12px; font-weight:600; letter-spacing:1px;
+padding:4px 12px; border-radius:20px; border:1px solid var(–border);
+color:var(–text-dim); cursor:pointer; transition:all 0.15s;
+}
+.filter-chip.active { border-color:var(–cyan2); color:var(–cyan); background:var(–cyan-dim); }
+.filter-chip:hover { border-color:var(–cyan2); color:var(–cyan); }
+
+.todo-group { margin-bottom:24px; }
+.todo-group-title {
+font-family:‘Share Tech Mono’; font-size:10px; letter-spacing:2px;
+color:var(–text-dim); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.todo-group-title::after { content:’’; flex:1; height:1px; background:var(–border); }
+
+.todo-item {
+display:flex; align-items:center; gap:12px;
+padding:10px 14px; margin-bottom:4px;
+background: var(–panel);
+border: 1px solid var(–border);
+border-radius:4px;
+cursor:pointer; transition:all 0.15s;
+position:relative; overflow:hidden;
+}
+.todo-item::before {
+content:’’; position:absolute; left:0; top:0; bottom:0; width:2px;
+}
+.todo-item.prio-high::before { background:var(–red); box-shadow:0 0 6px var(–red); }
+.todo-item.prio-mid::before { background:var(–yellow); box-shadow:0 0 6px var(–yellow); }
+.todo-item.prio-low::before { background:var(–cyan2); }
+.todo-item:hover { border-color:rgba(0,212,255,0.3); background:rgba(10,22,40,0.8); }
+.todo-item.done { opacity:0.45; }
+.todo-item.done .todo-text { text-decoration:line-through; color:var(–text-dim); }
+
+.todo-check {
+width:18px; height:18px; border:1.5px solid var(–border); border-radius:3px;
+flex-shrink:0; display:flex; align-items:center; justify-content:center;
+transition:all 0.15s; font-size:11px;
+}
+.todo-item.done .todo-check { background:var(–green-dim); border-color:var(–green); color:var(–green); }
+.todo-text { flex:1; font-size:14px; font-weight:500; }
+.todo-tag {
+font-family:‘Share Tech Mono’; font-size:10px; padding:2px 7px;
+border-radius:3px; border:1px solid;
+}
+.tag-gmod { color:#ff9500; border-color:rgba(255,149,0,0.3); background:rgba(255,149,0,0.1); }
+.tag-school { color:var(–cyan); border-color:rgba(0,212,255,0.3); background:var(–cyan-dim); }
+.tag-code { color:var(–green); border-color:rgba(0,255,136,0.3); background:var(–green-dim); }
+.tag-personal { color:var(–yellow); border-color:rgba(255,204,0,0.3); background:rgba(255,204,0,0.1); }
+
+.todo-due { font-family:‘Share Tech Mono’; font-size:10px; color:var(–text-dim); flex-shrink:0; }
+.todo-due.overdue { color:var(–red); }
+
+.add-todo-row {
+display:flex; gap:8px; margin-top:16px;
+}
+.todo-input {
+flex:1; background:var(–panel); border:1px solid var(–border); border-radius:4px;
+color:var(–text-bright); font-family:‘Rajdhani’; font-size:14px; font-weight:500;
+padding:8px 14px; outline:none; transition:border-color 0.2s;
+}
+.todo-input:focus { border-color:var(–cyan2); box-shadow:0 0 8px rgba(0,212,255,0.15); }
+.todo-input::placeholder { color:var(–text-dim); }
+
+.todo-select {
+background:var(–panel); border:1px solid var(–border); border-radius:4px;
+color:var(–text); font-family:‘Rajdhani’; font-size:13px; padding:8px 10px;
+outline:none; cursor:pointer;
+}
+
+/* ══════════════════════════════════
+KANBAN VIEW
+══════════════════════════════════ */
+.kanban-board {
+flex:1; display:flex; gap:16px; padding:20px 24px; overflow-x:auto; overflow-y:hidden;
+}
+
+.kanban-col {
+min-width:240px; width:240px; display:flex; flex-direction:column; gap:8px; flex-shrink:0;
+}
+
+.kanban-col-header {
+display:flex; align-items:center; gap:8px;
+padding:8px 12px;
+background:var(–panel);
+border:1px solid var(–border);
+border-radius:4px;
+font-family:‘Orbitron’; font-size:11px; font-weight:700; letter-spacing:1.5px;
+}
+.col-indicator { width:8px; height:8px; border-radius:50%; }
+.col-count { margin-left:auto; font-family:‘Share Tech Mono’; font-size:11px; color:var(–text-dim); }
+
+.kanban-cards { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; }
+
+.kanban-card {
+background:var(–panel);
+border:1px solid var(–border);
+border-radius:4px;
+padding:10px 12px;
+cursor:grab; transition:all 0.2s;
+position:relative; overflow:hidden;
+}
+.kanban-card::before {
+content:’’; position:absolute; top:0; left:0; right:0; height:2px;
+}
+.kanban-card.c-gmod::before { background:linear-gradient(90deg,#ff9500,#ffcc00); }
+.kanban-card.c-school::before { background:linear-gradient(90deg,var(–cyan),var(–cyan2)); }
+.kanban-card.c-code::before { background:linear-gradient(90deg,var(–green),var(–cyan)); }
+
+.kanban-card:hover {
+border-color:rgba(0,212,255,0.4);
+box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 12px rgba(0,212,255,0.1);
+transform: translateY(-1px);
+}
+.kanban-card:active { cursor:grabbing; }
+
+.card-title { font-size:13px; font-weight:600; margin-bottom:6px; color:var(–text-bright); }
+.card-desc { font-size:11px; color:var(–text-dim); margin-bottom:8px; line-height:1.4; }
+.card-footer { display:flex; align-items:center; gap:6px; }
+.card-avatar {
+width:18px; height:18px; border-radius:50%;
+background:var(–cyan-dim); border:1px solid var(–cyan2);
+font-size:9px; display:flex; align-items:center; justify-content:center; color:var(–cyan);
+font-family:‘Share Tech Mono’;
+}
+.card-date { font-family:‘Share Tech Mono’; font-size:9px; color:var(–text-dim); margin-left:auto; }
+
+.kanban-add-btn {
+width:100%; padding:8px; background:transparent; border:1px dashed rgba(26,58,92,0.6);
+color:var(–text-dim); font-family:‘Rajdhani’; font-size:12px; font-weight:600; letter-spacing:1px;
+cursor:pointer; border-radius:4px; transition:all 0.2s;
+}
+.kanban-add-btn:hover { border-color:var(–cyan2); color:var(–cyan); background:var(–cyan-dim); }
+
+/* ══════════════════════════════════
+GANTT VIEW
+══════════════════════════════════ */
+.gantt-wrap { flex:1; overflow:auto; padding:20px 24px; }
+
+.gantt-container { min-width:900px; }
+
+.gantt-header-row {
+display:grid;
+border-bottom:1px solid var(–border);
+margin-bottom:0;
+position:sticky; top:0; z-index:5;
+background: var(–bg);
+}
+
+.gantt-task-col { width:220px; flex-shrink:0; }
+.gantt-timeline { flex:1; }
+
+.gantt-row {
+display:flex; align-items:stretch;
+border-bottom:1px solid rgba(26,58,92,0.4);
+min-height:44px;
+}
+.gantt-row:hover { background:rgba(0,212,255,0.03); }
+
+.gantt-task-info {
+width:220px; flex-shrink:0; padding:10px 12px;
+display:flex; align-items:center; gap:8px; border-right:1px solid var(–border);
+}
+.gantt-task-name { font-size:12px; font-weight:600; color:var(–text); }
+.gantt-task-tag { font-family:‘Share Tech Mono’; font-size:9px; }
+
+.gantt-timeline-area { flex:1; position:relative; }
+
+.gantt-months {
+display:flex; border-bottom:1px solid var(–border);
+}
+.gantt-month {
+flex:1; text-align:center; font-family:‘Share Tech Mono’; font-size:10px;
+color:var(–text-dim); padding:8px 4px; border-right:1px solid rgba(26,58,92,0.4);
+letter-spacing:1px;
+}
+.gantt-month.current { color:var(–cyan); }
+
+.gantt-bar-row { position:relative; height:44px; }
+.gantt-bar-row::after {
+content:’’; position:absolute; top:50%; left:0; right:0; height:1px;
+background: rgba(26,58,92,0.3);
+}
+
+.gantt-bar {
+position:absolute; top:10px; height:24px; border-radius:3px;
+display:flex; align-items:center; padding:0 8px;
+font-family:‘Share Tech Mono’; font-size:9px; font-weight:700;
+letter-spacing:0.5px; cursor:pointer; transition:filter 0.2s; z-index:2;
+overflow:hidden; white-space:nowrap;
+}
+.gantt-bar:hover { filter:brightness(1.3); box-shadow:0 0 12px rgba(0,0,0,0.5); }
+
+.gantt-bar.gb-gmod { background:linear-gradient(90deg,rgba(255,149,0,0.6),rgba(255,204,0,0.4)); border:1px solid rgba(255,149,0,0.5); color:#ffcc00; }
+.gantt-bar.gb-school { background:linear-gradient(90deg,rgba(0,150,200,0.5),rgba(0,212,255,0.3)); border:1px solid rgba(0,212,255,0.4); color:var(–cyan); }
+.gantt-bar.gb-code { background:linear-gradient(90deg,rgba(0,200,100,0.4),rgba(0,255,136,0.2)); border:1px solid rgba(0,255,136,0.3); color:var(–green); }
+.gantt-bar.gb-personal { background:linear-gradient(90deg,rgba(150,50,255,0.4),rgba(200,100,255,0.2)); border:1px solid rgba(180,80,255,0.4); color:#cc80ff; }
+
+.gantt-progress { position:absolute; left:0; top:0; bottom:0; opacity:0.3; border-radius:3px 0 0 3px; }
+.gantt-today-line {
+position:absolute; top:0; bottom:0; width:2px;
+background:var(–red); opacity:0.7; z-index:3;
+box-shadow: 0 0 6px var(–red);
+}
+.gantt-today-line::before {
+content:‘NOW’; position:absolute; top:-20px; left:-12px;
+font-family:‘Share Tech Mono’; font-size:8px; color:var(–red); letter-spacing:1px;
+}
+
+/* ══════════════════════════════════
+MINDMAP VIEW
+══════════════════════════════════ */
+.mindmap-wrap { flex:1; overflow:hidden; position:relative; }
+
+#mindmap-canvas { width:100%; height:100%; }
+
+.mm-toolbar {
+position:absolute; top:16px; left:16px; display:flex; gap:8px; z-index:10;
+}
+
+.mm-node-editor {
+position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
+background:var(–panel); border:1px solid var(–border); border-radius:6px;
+padding:12px 16px; display:flex; gap:8px; align-items:center;
+box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+z-index: 10;
+}
+.mm-input {
+background:transparent; border:none; color:var(–text-bright);
+font-family:‘Rajdhani’; font-size:14px; font-weight:600; outline:none; width:200px;
+}
+.mm-input::placeholder { color:var(–text-dim); }
+
+/* ══════════════════════════════════
+GMOD ADDON PLANER
+══════════════════════════════════ */
+.gmod-wrap { flex:1; overflow-y:auto; padding:20px 24px; display:flex; flex-direction:column; gap:16px; }
+
+.gmod-header-info {
+display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
+}
+.gmod-stat {
+background:var(–panel); border:1px solid var(–border); border-radius:4px;
+padding:14px 16px;
+}
+.gmod-stat-label { font-family:‘Share Tech Mono’; font-size:9px; color:var(–text-dim); letter-spacing:2px; margin-bottom:6px; }
+.gmod-stat-value { font-family:‘Orbitron’; font-size:20px; font-weight:700; color:var(–cyan); }
+.gmod-stat-value.g { color:var(–green); }
+.gmod-stat-value.r { color:var(–red); }
+.gmod-stat-value.y { color:var(–yellow); }
+
+.gmod-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.gmod-panel {
+background:var(–panel); border:1px solid var(–border); border-radius:4px; overflow:hidden;
+}
+.gmod-panel-header {
+padding:10px 14px; border-bottom:1px solid var(–border);
+display:flex; align-items:center; gap:8px;
+font-family:‘Orbitron’; font-size:11px; font-weight:700; letter-spacing:1.5px; color:var(–cyan);
+}
+.gmod-panel-header .ph-icon { font-size:14px; }
+.gmod-panel-body { padding:12px 14px; }
+
+.addon-feature {
+display:flex; align-items:center; gap:10px;
+padding:8px 0; border-bottom:1px solid rgba(26,58,92,0.4);
+font-size:13px;
+}
+.addon-feature:last-child { border-bottom:none; }
+.feature-status {
+width:20px; height:20px; border-radius:3px; flex-shrink:0;
+display:flex; align-items:center; justify-content:center; font-size:11px;
+font-family:‘Share Tech Mono’;
+}
+.fs-done { background:var(–green-dim); border:1px solid rgba(0,255,136,0.3); color:var(–green); }
+.fs-wip { background:rgba(255,204,0,0.1); border:1px solid rgba(255,204,0,0.3); color:var(–yellow); }
+.fs-todo { background:var(–panel); border:1px solid var(–border); color:var(–text-dim); }
+.fs-bug { background:rgba(255,51,85,0.1); border:1px solid rgba(255,51,85,0.3); color:var(–red); }
+
+.feature-name { flex:1; }
+.feature-type { font-family:‘Share Tech Mono’; font-size:9px; padding:1px 5px; border-radius:2px; }
+
+.lua-snippet {
+background:#060e1a; border:1px solid rgba(26,58,92,0.6); border-radius:4px;
+padding:10px 12px; font-family:‘Share Tech Mono’; font-size:11px; line-height:1.6;
+color:#a0c4e0; overflow-x:auto; margin-top:8px;
+}
+.lua-kw { color:#ff9500; }
+.lua-fn { color:var(–cyan); }
+.lua-str { color:var(–green); }
+.lua-cm { color:#3a6080; }
+.lua-num { color:#cc80ff; }
+
+.file-tree { font-family:‘Share Tech Mono’; font-size:11px; line-height:1.8; color:#5a7a99; }
+.file-tree .ft-dir { color:var(–cyan); }
+.file-tree .ft-lua { color:var(–green); }
+.file-tree .ft-new { color:var(–yellow); }
+.file-tree .indent { padding-left:14px; }
+
+.progress-bar-wrap { margin-top:6px; }
+.progress-label { display:flex; justify-content:space-between; font-size:11px; color:var(–text-dim); margin-bottom:4px; }
+.progress-bar { height:6px; background:rgba(26,58,92,0.5); border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; border-radius:3px; transition:width 0.5s; }
+.pf-cyan { background:linear-gradient(90deg,var(–cyan2),var(–cyan)); box-shadow:0 0 6px rgba(0,212,255,0.4); }
+.pf-green { background:linear-gradient(90deg,#00cc66,var(–green)); box-shadow:0 0 6px rgba(0,255,136,0.4); }
+.pf-orange { background:linear-gradient(90deg,#cc7700,#ff9500); }
+
+.network-status {
+display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;
+}
+.ns-item {
+font-family:‘Share Tech Mono’; font-size:10px; padding:4px 8px; border-radius:3px;
+border:1px solid var(–border); color:var(–text-dim);
+display:flex; align-items:center; gap:5px;
+}
+.ns-item .ns-dot { width:6px; height:6px; border-radius:50%; }
+
+/* ══════════════════════════════════
+SCROLLBAR
+══════════════════════════════════ */
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(0,180,255,0.2); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background:rgba(0,180,255,0.4); }
+
+/* MODAL */
+.modal-bg {
+display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100;
+align-items:center; justify-content:center;
+}
+.modal-bg.open { display:flex; }
+.modal {
+background:var(–bg2); border:1px solid var(–border); border-radius:6px;
+padding:24px; min-width:360px; max-width:500px; width:90%;
+box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(0,212,255,0.1);
+}
+.modal-title { font-family:‘Orbitron’; font-size:14px; font-weight:700; color:var(–cyan); letter-spacing:2px; margin-bottom:16px; }
+.modal-field { margin-bottom:12px; }
+.modal-label { font-size:11px; letter-spacing:1px; color:var(–text-dim); margin-bottom:4px; display:block; font-family:‘Share Tech Mono’; }
+.modal-input {
+width:100%; background:var(–panel); border:1px solid var(–border); border-radius:4px;
+color:var(–text-bright); font-family:‘Rajdhani’; font-size:14px; padding:8px 12px; outline:none;
+}
+.modal-input:focus { border-color:var(–cyan2); }
+.modal-actions { display:flex; gap:8px; margin-top:16px; justify-content:flex-end; }
+</style>
+
+</head>
+<body>
+
+<header>
+  <div class="logo">PLANR<span>// COMMAND CENTER</span></div>
+  <div class="header-divider"></div>
+  <nav>
+    <button class="active" onclick="showView('todo', this)">
+      <span class="nav-icon">◈</span> TO-DO
+    </button>
+    <button onclick="showView('kanban', this)">
+      <span class="nav-icon">▦</span> KANBAN
+    </button>
+    <button onclick="showView('gantt', this)">
+      <span class="nav-icon">▬</span> GANTT
+    </button>
+    <button onclick="showView('mindmap', this)">
+      <span class="nav-icon">◎</span> MINDMAP
+    </button>
+    <button onclick="showView('gmod', this)">
+      <span class="nav-icon">⬡</span> GMOD ADDON
+    </button>
+  </nav>
+  <div class="header-right">
+    <div class="status-dot"></div>
+    <div class="status-text">SYSTEM ONLINE</div>
+    <div class="header-divider"></div>
+    <div class="time-display" id="clock">--:--:--</div>
+  </div>
+</header>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">// PROJEKTE</div>
+      <div class="project-item active" onclick="selectProject(this)">
+        <div class="project-dot" style="background:#ff9500;box-shadow:0 0 6px #ff9500"></div>
+        Spice System
+        <span class="project-badge">6</span>
+      </div>
+      <div class="project-item" onclick="selectProject(this)">
+        <div class="project-dot" style="background:#00d4ff;box-shadow:0 0 6px #00d4ff"></div>
+        Holomap 3D
+        <span class="project-badge">4</span>
+      </div>
+      <div class="project-item" onclick="selectProject(this)">
+        <div class="project-dot" style="background:#00ff88;box-shadow:0 0 6px #00ff88"></div>
+        Vokabeltrainer
+        <span class="project-badge">3</span>
+      </div>
+      <div class="project-item" onclick="selectProject(this)">
+        <div class="project-dot" style="background:#cc80ff;box-shadow:0 0 6px #cc80ff"></div>
+        SchulOS
+        <span class="project-badge">8</span>
+      </div>
+      <div class="project-item" onclick="selectProject(this)">
+        <div class="project-dot" style="background:#ffcc00;box-shadow:0 0 6px #ffcc00"></div>
+        Discord Bot
+        <span class="project-badge">2</span>
+      </div>
+      <div class="project-item" onclick="selectProject(this)">
+        <div class="project-dot" style="background:#ff3355;"></div>
+        Java RTS
+        <span class="project-badge">5</span>
+      </div>
+      <button class="add-project-btn" onclick="openModal()">+ NEUES PROJEKT</button>
+    </div>
+
+```
+<div class="sidebar-section" style="margin-top:auto;">
+  <div class="sidebar-label">// STATS</div>
+  <div style="font-family:'Share Tech Mono';font-size:10px;color:var(--text-dim);line-height:2;">
+    <div>TASKS TOTAL <span style="color:var(--cyan);float:right">28</span></div>
+    <div>ERLEDIGT <span style="color:var(--green);float:right">12</span></div>
+    <div>IN ARBEIT <span style="color:var(--yellow);float:right">9</span></div>
+    <div>OFFEN <span style="color:var(--red);float:right">7</span></div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- CONTENT AREA -->
+
+  <div class="content">
+
+```
+<!-- ── TODO VIEW ── -->
+<div class="view active" id="view-todo">
+  <div class="view-header">
+    <div>
+      <div class="view-title">TO-DO MATRIX</div>
+      <div class="view-subtitle">28 Tasks · 12 erledigt</div>
+    </div>
+    <div class="view-actions">
+      <button class="btn btn-primary" onclick="openAddTodo()">+ TASK HINZUFÜGEN</button>
+    </div>
+  </div>
+  <div class="todo-content">
+    <div class="todo-filter-bar">
+      <div class="filter-chip active" onclick="filterTodo('all',this)">ALLE</div>
+      <div class="filter-chip" onclick="filterTodo('gmod',this)">GMOD</div>
+      <div class="filter-chip" onclick="filterTodo('school',this)">SCHULE</div>
+      <div class="filter-chip" onclick="filterTodo('code',this)">CODE</div>
+      <div class="filter-chip" onclick="filterTodo('personal',this)">PERSÖNLICH</div>
+    </div>
+
+    <div class="todo-group" id="todo-group-high">
+      <div class="todo-group-title">◈ HOHE PRIORITÄT</div>
+      <div id="todos-high"></div>
+    </div>
+    <div class="todo-group" id="todo-group-mid">
+      <div class="todo-group-title">◇ MITTEL</div>
+      <div id="todos-mid"></div>
+    </div>
+    <div class="todo-group" id="todo-group-low">
+      <div class="todo-group-title">○ NIEDRIG</div>
+      <div id="todos-low"></div>
+    </div>
+
+    <div class="add-todo-row">
+      <input class="todo-input" id="new-todo-input" placeholder="Neue Aufgabe eingeben..." onkeydown="if(event.key==='Enter')addTodo()">
+      <select class="todo-select" id="new-todo-tag">
+        <option value="gmod">GMod</option>
+        <option value="school">Schule</option>
+        <option value="code">Code</option>
+        <option value="personal">Persönlich</option>
+      </select>
+      <select class="todo-select" id="new-todo-prio">
+        <option value="high">! Hoch</option>
+        <option value="mid">~ Mittel</option>
+        <option value="low">○ Niedrig</option>
+      </select>
+      <button class="btn btn-primary" onclick="addTodo()">+ ADD</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── KANBAN VIEW ── -->
+<div class="view" id="view-kanban">
+  <div class="view-header">
+    <div>
+      <div class="view-title">KANBAN BOARD</div>
+      <div class="view-subtitle">Drag & Drop Workflow</div>
+    </div>
+    <div class="view-actions">
+      <button class="btn btn-ghost">⚙ SPALTE +</button>
+      <button class="btn btn-primary" onclick="addKanbanCard()">+ KARTE</button>
+    </div>
+  </div>
+  <div class="kanban-board" id="kanban-board"></div>
+</div>
+
+<!-- ── GANTT VIEW ── -->
+<div class="view" id="view-gantt">
+  <div class="view-header">
+    <div>
+      <div class="view-title">GANTT TIMELINE</div>
+      <div class="view-subtitle">Projekt-Zeitplan 2025</div>
+    </div>
+    <div class="view-actions">
+      <button class="btn btn-ghost">◈ TASK +</button>
+      <button class="btn btn-primary">↓ EXPORT</button>
+    </div>
+  </div>
+  <div class="gantt-wrap">
+    <div class="gantt-container" id="gantt-container"></div>
+  </div>
+</div>
+
+<!-- ── MINDMAP VIEW ── -->
+<div class="view" id="view-mindmap">
+  <div class="view-header">
+    <div>
+      <div class="view-title">MINDMAP</div>
+      <div class="view-subtitle">Klick auf Node zum Bearbeiten · Doppelklick auf freie Fläche = neuer Node</div>
+    </div>
+    <div class="view-actions">
+      <button class="btn btn-ghost" onclick="resetMindmap()">↺ RESET</button>
+      <button class="btn btn-primary" onclick="addMindNode()">+ NODE</button>
+    </div>
+  </div>
+  <div class="mindmap-wrap">
+    <svg id="mindmap-canvas"></svg>
+  </div>
+</div>
+
+<!-- ── GMOD ADDON PLANER VIEW ── -->
+<div class="view" id="view-gmod">
+  <div class="view-header">
+    <div>
+      <div class="view-title">GMOD ADDON PLANER</div>
+      <div class="view-subtitle">Lua Development Tracker</div>
+    </div>
+    <div class="view-actions">
+      <button class="btn btn-ghost">↓ README.md</button>
+      <button class="btn btn-primary">+ FEATURE</button>
+    </div>
+  </div>
+  <div class="gmod-wrap">
+
+    <div class="gmod-header-info">
+      <div class="gmod-stat">
+        <div class="gmod-stat-label">ADDON NAME</div>
+        <div style="font-family:'Orbitron';font-size:13px;color:var(--text-bright);letter-spacing:1px;">Spice System</div>
+      </div>
+      <div class="gmod-stat">
+        <div class="gmod-stat-label">FORTSCHRITT</div>
+        <div class="gmod-stat-value">64%</div>
+      </div>
+      <div class="gmod-stat">
+        <div class="gmod-stat-label">FEATURES</div>
+        <div class="gmod-stat-value g">9/14</div>
+      </div>
+      <div class="gmod-stat">
+        <div class="gmod-stat-label">BUGS OFFEN</div>
+        <div class="gmod-stat-value r">3</div>
+      </div>
+    </div>
+
+    <div class="gmod-grid">
+
+      <!-- Feature Tracker -->
+      <div class="gmod-panel">
+        <div class="gmod-panel-header"><span class="ph-icon">◈</span> FEATURE TRACKER</div>
+        <div class="gmod-panel-body">
+          <div class="addon-feature">
+            <div class="feature-status fs-done">✓</div>
+            <span class="feature-name">Spice Entity spawnen</span>
+            <span class="feature-type tag-gmod">ENTITY</span>
+          </div>
+          <div class="addon-feature">
+            <div class="feature-status fs-done">✓</div>
+            <span class="feature-name">Inventory System (SV)</span>
+            <span class="feature-type tag-code">SERVER</span>
+          </div>
+          <div class="addon-feature">
+            <div class="feature-status fs-done">✓</div>
+            <span class="feature-name">HUD Anzeige (CL)</span>
+            <span class="feature-type tag-code">CLIENT</span>
+          </div>
+          <div class="addon-feature">
+            <div class="feature-status fs-wip">~</div>
+            <span class="feature-name">Spice Transport Route</span>
+            <span class="feature-type tag-gmod">SYSTEM</span>
+          </div>
+          <div class="addon-feature">
+            <div class="feature-status fs-wip">~</div>
+            <span class="feature-name">Market Price System</span>
+            <span class="feature-type tag-code">SERVER</span>
+          </div>
+          <div class="addon-feature">
+            <div class="feature-status fs-bug">!</div>
+            <span class="feature-name">Key-Press Lock Bug</span>
+            <span class="feature-type tag-gmod">BUG</span>
+          </div>
+          <div class="addon-feature">
+            <div class="feature-status fs-todo">○</div>
+            <span class="feature-name">Admin Panel VGUI</span>
+            <span class="feature-type tag-code">CLIENT</span>
+          </div>
+          <div class="addon-feature">
+            <div class="feature-status fs-todo">○</div>
+            <span class="feature-name">Net Messages optimieren</span>
+            <span class="feature-type tag-code">NET</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- File Structure -->
+      <div class="gmod-panel">
+        <div class="gmod-panel-header"><span class="ph-icon">◫</span> DATEISTRUKTUR</div>
+        <div class="gmod-panel-body">
+          <div class="file-tree">
+            <div class="ft-dir">📁 spice_system/</div>
+            <div class="indent">
+              <div class="ft-dir">📁 lua/</div>
+              <div class="indent">
+                <div class="ft-dir">📁 autorun/</div>
+                <div class="indent">
+                  <div class="ft-lua">📄 spice_init.lua</div>
+                </div>
+                <div class="ft-dir">📁 spice/</div>
+                <div class="indent">
+                  <div class="ft-lua">📄 sv_main.lua</div>
+                  <div class="ft-lua">📄 cl_hud.lua</div>
+                  <div class="ft-lua">📄 sh_config.lua</div>
+                  <div class="ft-new">📄 sv_market.lua ✦</div>
+                  <div class="ft-new">📄 cl_admin.lua ✦</div>
+                </div>
+                <div class="ft-dir">📁 entities/</div>
+                <div class="indent">
+                  <div class="ft-lua">📄 spice_crate/</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px;">
+            <div class="progress-bar-wrap">
+              <div class="progress-label"><span>Server-Side</span><span>75%</span></div>
+              <div class="progress-bar"><div class="progress-fill pf-cyan" style="width:75%"></div></div>
+            </div>
+            <div class="progress-bar-wrap" style="margin-top:8px;">
+              <div class="progress-label"><span>Client-Side</span><span>55%</span></div>
+              <div class="progress-bar"><div class="progress-fill pf-green" style="width:55%"></div></div>
+            </div>
+            <div class="progress-bar-wrap" style="margin-top:8px;">
+              <div class="progress-label"><span>Entities</span><span>80%</span></div>
+              <div class="progress-bar"><div class="progress-fill pf-orange" style="width:80%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Code Snippet -->
+      <div class="gmod-panel">
+        <div class="gmod-panel-header"><span class="ph-icon">◩</span> AKTUELLER CODE-FOKUS</div>
+        <div class="gmod-panel-body">
+          <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">sv_market.lua — Preis-Berechnung</div>
+          <div class="lua-snippet"><span class="lua-cm">-- Dynamischer Marktpreis</span>
+```
+
+<span class="lua-kw">local function</span> <span class="lua-fn">CalcSpicePrice</span>( ply, amount )
+<span class="lua-kw">local</span> base = <span class="lua-fn">Spice.Config</span>.BasePrice
+<span class="lua-kw">local</span> supply = <span class="lua-fn">Spice.GetSupply</span>()
+<span class="lua-kw">local</span> demand = <span class="lua-fn">Spice.GetDemand</span>()
+
+<span class="lua-cm">– Angebot/Nachfrage-Faktor</span>
+<span class="lua-kw">local</span> factor = demand / math.<span class="lua-fn">max</span>(supply, <span class="lua-num">1</span>)
+<span class="lua-kw">return</span> math.<span class="lua-fn">floor</span>(base * factor * amount)
+<span class="lua-kw">end</span>
+
+<span class="lua-fn">net.Receive</span>(<span class="lua-str">“Spice_Buy”</span>, <span class="lua-kw">function</span>(len, ply)
+<span class="lua-kw">local</span> amt = net.<span class="lua-fn">ReadUInt</span>(<span class="lua-num">8</span>)
+<span class="lua-kw">local</span> price = <span class="lua-fn">CalcSpicePrice</span>(ply, amt)
+<span class="lua-cm">– TODO: balance check</span>
+<span class="lua-kw">end</span>)</div>
+</div>
+</div>
+
+```
+      <!-- Dependencies & Notes -->
+      <div class="gmod-panel">
+        <div class="gmod-panel-header"><span class="ph-icon">⬡</span> ABHÄNGIGKEITEN & NOTES</div>
+        <div class="gmod-panel-body">
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;font-family:'Share Tech Mono';letter-spacing:1px;">REQUIREMENTS</div>
+          <div class="network-status">
+            <div class="ns-item"><div class="ns-dot" style="background:var(--green)"></div>DarkRP</div>
+            <div class="ns-item"><div class="ns-dot" style="background:var(--green)"></div>EGM RP</div>
+            <div class="ns-item"><div class="ns-dot" style="background:var(--yellow)"></div>Custom HUD</div>
+            <div class="ns-item"><div class="ns-dot" style="background:var(--red)"></div>wh_hud_sv</div>
+          </div>
+          <div style="margin-top:14px;font-size:11px;color:var(--text-dim);font-family:'Share Tech Mono';letter-spacing:1px;">NOTIZEN</div>
+          <div id="gmod-notes-list" style="margin-top:8px;"></div>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <input class="todo-input" id="gmod-note-input" placeholder="Notiz hinzufügen..." style="font-size:12px;padding:6px 10px;" onkeydown="if(event.key==='Enter')addGmodNote()">
+            <button class="btn btn-primary" onclick="addGmodNote()" style="padding:6px 10px;font-size:11px;">+</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+```
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<!-- MODAL -->
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-title">NEUES PROJEKT</div>
+    <div class="modal-field">
+      <label class="modal-label">PROJEKTNAME</label>
+      <input class="modal-input" id="modal-name" placeholder="z.B. Datapad SWEP">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">KATEGORIE</label>
+      <select class="modal-input" id="modal-cat">
+        <option>GMod Addon</option>
+        <option>Schule</option>
+        <option>Code Projekt</option>
+        <option>Persönlich</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">FARBE</label>
+      <input type="color" class="modal-input" id="modal-color" value="#00d4ff" style="height:38px;cursor:pointer;">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">ABBRECHEN</button>
+      <button class="btn btn-primary" onclick="createProject()">ERSTELLEN</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── CLOCK ───
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    String(now.getHours()).padStart(2,'0') + ':' +
+    String(now.getMinutes()).padStart(2,'0') + ':' +
+    String(now.getSeconds()).padStart(2,'0');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ─── NAV ───
+function showView(id, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'mindmap') initMindmap();
+  if (id === 'gantt') initGantt();
+  if (id === 'kanban') initKanban();
+}
+
+function selectProject(el) {
+  document.querySelectorAll('.project-item').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ─── MODAL ───
+function openModal() { document.getElementById('modal').classList.add('open'); }
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function createProject() {
+  const name = document.getElementById('modal-name').value.trim();
+  const color = document.getElementById('modal-color').value;
+  if (!name) return;
+  const sidebar = document.querySelector('.sidebar-section .add-project-btn').parentNode;
+  const btn = document.querySelector('.add-project-btn');
+  const div = document.createElement('div');
+  div.className = 'project-item';
+  div.onclick = function() { selectProject(this); };
+  div.innerHTML = `<div class="project-dot" style="background:${color};box-shadow:0 0 6px ${color}"></div>${name}<span class="project-badge">0</span>`;
+  sidebar.insertBefore(div, btn);
+  closeModal();
+}
+
+// ─── TODO ───
+let todos = [
+  { id:1, text:'Spice Transport Route implementieren', tag:'gmod', prio:'high', done:false, due:'2025-12-20' },
+  { id:2, text:'Key-Press Lock Bug fixen (TCS)', tag:'gmod', prio:'high', done:false, due:'2025-12-15' },
+  { id:3, text:'Mathe-Aufgaben: Sinusfunktionen', tag:'school', prio:'high', done:false, due:'2025-12-18' },
+  { id:4, text:'Admin Panel VGUI designen', tag:'gmod', prio:'mid', done:false, due:'2026-01-05' },
+  { id:5, text:'SchulOS Bluetooth Mesh Doku', tag:'school', prio:'mid', done:false, due:'2026-01-10' },
+  { id:6, text:'Vokabeltrainer: Wortgruppen-Sharing', tag:'code', prio:'mid', done:true, due:'2025-12-10' },
+  { id:7, text:'Discord Bot Ticket-Menu fertig', tag:'code', prio:'mid', done:false, due:'2025-12-22' },
+  { id:8, text:'Java RTS: Building Grid implementieren', tag:'code', prio:'low', done:false, due:'2026-01-15' },
+  { id:9, text:'Blender: Schraube texturieren', tag:'personal', prio:'low', done:true, due:'2025-12-12' },
+];
+let nextId = 10;
+let currentFilter = 'all';
+
+function renderTodos() {
+  const filtered = currentFilter === 'all' ? todos : todos.filter(t => t.tag === currentFilter);
+  ['high','mid','low'].forEach(p => {
+    const container = document.getElementById('todos-' + p);
+    const items = filtered.filter(t => t.prio === p);
+    container.innerHTML = items.map(t => `
+      <div class="todo-item prio-${t.prio} ${t.done ? 'done' : ''}" onclick="toggleTodo(${t.id})" data-tag="${t.tag}">
+        <div class="todo-check">${t.done ? '✓' : ''}</div>
+        <span class="todo-text">${t.text}</span>
+        <span class="todo-tag tag-${t.tag}">${t.tag.toUpperCase()}</span>
+        <span class="todo-due ${isDue(t.due) ? 'overdue' : ''}">${formatDate(t.due)}</span>
+      </div>
+    `).join('');
+  });
+}
+
+function isDue(d) { return new Date(d) < new Date(); }
+function formatDate(d) {
+  if(!d) return '';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit'});
+}
+function toggleTodo(id) {
+  const t = todos.find(x => x.id === id);
+  if(t) t.done = !t.done;
+  renderTodos();
+  updateSidebarStats();
+}
+function filterTodo(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderTodos();
+}
+function addTodo() {
+  const input = document.getElementById('new-todo-input');
+  const tag = document.getElementById('new-todo-tag').value;
+  const prio = document.getElementById('new-todo-prio').value;
+  const text = input.value.trim();
+  if(!text) return;
+  todos.push({ id: nextId++, text, tag, prio, done: false, due: '' });
+  input.value = '';
+  renderTodos();
+  updateSidebarStats();
+}
+function updateSidebarStats() {
+  const total = todos.length;
+  const done = todos.filter(t => t.done).length;
+  const wip = todos.filter(t => !t.done && t.prio !== 'low').length;
+  const open = todos.filter(t => !t.done && t.prio === 'low').length;
+  const els = document.querySelectorAll('.sidebar-section:last-child div div');
+  // simple approach
+}
+renderTodos();
+
+// ─── KANBAN ───
+const kanbanData = {
+  backlog: {
+    label: 'BACKLOG', color: '#5a7a99',
+    cards: [
+      { id:'k1', title:'Admin Panel VGUI', desc:'VGUI Panel für Server-Admins', cat:'gmod', date:'Jan 05' },
+      { id:'k2', title:'Java RTS Building Grid', desc:'Grid-System für Gebäude-Placement', cat:'code', date:'Jan 15' },
+    ]
+  },
+  inprogress: {
+    label: 'IN ARBEIT', color: '#ffcc00',
+    cards: [
+      { id:'k3', title:'Spice Transport Route', desc:'Route-System zwischen Zonen', cat:'gmod', date:'Dez 20' },
+      { id:'k4', title:'Market Price System', desc:'Dynamische Preise nach Angebot/Nachfrage', cat:'gmod', date:'Dez 22' },
+      { id:'k5', title:'Discord Ticket Bot', desc:'Selection Menu + Modal', cat:'code', date:'Dez 22' },
+    ]
+  },
+  review: {
+    label: 'REVIEW', color: '#00d4ff',
+    cards: [
+      { id:'k6', title:'HUD Anzeige (cl_hud.lua)', desc:'Client-Side HUD für Spice-Menge', cat:'code', date:'Dez 16' },
+    ]
+  },
+  done: {
+    label: 'FERTIG', color: '#00ff88',
+    cards: [
+      { id:'k7', title:'Spice Entity spawnen', desc:'Entity mit Modell & Props', cat:'gmod', date:'Dez 10' },
+      { id:'k8', title:'Vokabeltrainer Auth', desc:'bcrypt + CSRF Schutz', cat:'code', date:'Dez 08' },
+    ]
+  }
+};
+
+let draggedCard = null;
+let draggedFrom = null;
+
+function initKanban() {
+  const board = document.getElementById('kanban-board');
+  if(board.children.length > 0) return;
+  Object.entries(kanbanData).forEach(([colId, col]) => {
+    const colEl = document.createElement('div');
+    colEl.className = 'kanban-col';
+    colEl.id = 'col-' + colId;
+    colEl.innerHTML = `
+      <div class="kanban-col-header">
+        <div class="col-indicator" style="background:${col.color};box-shadow:0 0 6px ${col.color}"></div>
+        ${col.label}
+        <span class="col-count">${col.cards.length}</span>
+      </div>
+      <div class="kanban-cards" id="cards-${colId}"
+        ondragover="event.preventDefault()"
+        ondrop="dropCard(event,'${colId}')">
+      </div>
+      <button class="kanban-add-btn" onclick="addKanbanCardToCol('${colId}')">+ KARTE</button>
+    `;
+    board.appendChild(colEl);
+    renderKanbanCol(colId);
+  });
+}
+
+function renderKanbanCol(colId) {
+  const container = document.getElementById('cards-' + colId);
+  container.innerHTML = kanbanData[colId].cards.map(c => `
+    <div class="kanban-card c-${c.cat}" draggable="true"
+      ondragstart="dragCard(event,'${c.id}','${colId}')"
+      ondragend="dragEnd(event)">
+      <div class="card-title">${c.title}</div>
+      <div class="card-desc">${c.desc}</div>
+      <div class="card-footer">
+        <div class="card-avatar">${c.cat[0].toUpperCase()}</div>
+        <span class="todo-tag tag-${c.cat}" style="font-size:9px;">${c.cat.toUpperCase()}</span>
+        <span class="card-date">${c.date}</span>
+      </div>
+    </div>
+  `).join('');
+  document.querySelector('#col-' + colId + ' .col-count').textContent = kanbanData[colId].cards.length;
+}
+
+function dragCard(e, cardId, fromCol) {
+  draggedCard = cardId;
+  draggedFrom = fromCol;
+  e.dataTransfer.effectAllowed = 'move';
+}
+function dragEnd(e) { draggedCard = null; draggedFrom = null; }
+function dropCard(e, toCol) {
+  if(!draggedCard || draggedFrom === toCol) return;
+  const cardIdx = kanbanData[draggedFrom].cards.findIndex(c => c.id === draggedCard);
+  if(cardIdx === -1) return;
+  const [card] = kanbanData[draggedFrom].cards.splice(cardIdx, 1);
+  kanbanData[toCol].cards.push(card);
+  renderKanbanCol(draggedFrom);
+  renderKanbanCol(toCol);
+}
+function addKanbanCardToCol(colId) {
+  const title = prompt('Karten-Titel:');
+  if(!title) return;
+  const id = 'k' + Date.now();
+  kanbanData[colId].cards.push({ id, title, desc:'', cat:'code', date:'–' });
+  renderKanbanCol(colId);
+}
+function addKanbanCard() { addKanbanCardToCol('backlog'); }
+
+// ─── GANTT ───
+function initGantt() {
+  const container = document.getElementById('gantt-container');
+  if(container.children.length > 0) return;
+
+  const months = ['OKT','NOV','DEZ','JAN','FEB','MRZ'];
+  const tasks = [
+    { name:'Spice System', tag:'gmod', cls:'gb-gmod', start:0.0, end:0.65, prog:64 },
+    { name:'Holomap 3D', tag:'gmod', cls:'gb-gmod', start:0.1, end:0.55, prog:40 },
+    { name:'Vokabeltrainer', tag:'code', cls:'gb-code', start:0.0, end:0.45, prog:80 },
+    { name:'SchulOS Konzept', tag:'school', cls:'gb-school', start:0.2, end:0.85, prog:30 },
+    { name:'Discord Bot', tag:'code', cls:'gb-code', start:0.3, end:0.6, prog:55 },
+    { name:'Java RTS', tag:'code', cls:'gb-code', start:0.4, end:1.0, prog:20 },
+    { name:'Datapad SWEP', tag:'gmod', cls:'gb-gmod', start:0.55, end:0.9, prog:10 },
+    { name:'Theater Projekt', tag:'personal', cls:'gb-personal', start:0.15, end:0.7, prog:50 },
+  ];
+  const todayPos = 0.42; // ~dezember
+
+  // Header
+  const headerRow = document.createElement('div');
+  headerRow.className = 'gantt-row';
+  headerRow.style.cssText = 'position:sticky;top:0;z-index:5;background:var(--bg);';
+  headerRow.innerHTML = `
+    <div class="gantt-task-info" style="border-bottom:1px solid var(--border);">
+      <span style="font-family:Share Tech Mono;font-size:10px;color:var(--text-dim);letter-spacing:2px;">TASK</span>
+    </div>
+    <div class="gantt-timeline-area">
+      <div class="gantt-months">${months.map((m,i) => `<div class="gantt-month ${i===2?'current':''}">${m}</div>`).join('')}</div>
+    </div>
+  `;
+  container.appendChild(headerRow);
+
+  tasks.forEach(task => {
+    const row = document.createElement('div');
+    row.className = 'gantt-row';
+    const leftPct = task.start * 100;
+    const widthPct = (task.end - task.start) * 100;
+    row.innerHTML = `
+      <div class="gantt-task-info">
+        <span class="gantt-task-name">${task.name}</span>
+        <span class="todo-tag tag-${task.tag}" style="font-size:9px;">${task.tag.toUpperCase()}</span>
+      </div>
+      <div class="gantt-timeline-area">
+        <div class="gantt-bar-row">
+          <div class="gantt-today-line" style="left:${todayPos*100}%"></div>
+          <div class="gantt-bar ${task.cls}" style="left:${leftPct}%;width:${widthPct}%">
+            <div class="gantt-progress" style="width:${task.prog}%;background:rgba(255,255,255,0.2)"></div>
+            ${task.prog}%
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(row);
+  });
+}
+
+// ─── MINDMAP ───
+let mmNodes = [
+  { id:1, x:400, y:280, label:'PROJEKTE', root:true, color:'#00d4ff' },
+  { id:2, x:220, y:150, label:'GMod Addons', color:'#ff9500' },
+  { id:3, x:580, y:150, label:'Schule', color:'#00d4ff' },
+  { id:4, x:220, y:400, label:'Code', color:'#00ff88' },
+  { id:5, x:580, y:400, label:'Persönlich', color:'#cc80ff' },
+  { id:6, x:90, y:90, label:'Spice System', color:'#ff9500' },
+  { id:7, x:200, y:60, label:'Holomap 3D', color:'#ff9500' },
+  { id:8, x:340, y:60, label:'Datapad SWEP', color:'#ff9500' },
+  { id:9, x:500, y:80, label:'SchulOS', color:'#00d4ff' },
+  { id:10, x:660, y:80, label:'Wirtschaft', color:'#00d4ff' },
+  { id:11, x:100, y:460, label:'Vokabel-Trainer', color:'#00ff88' },
+  { id:12, x:230, y:490, label:'Discord Bot', color:'#00ff88' },
+  { id:13, x:580, y:470, label:'Theater', color:'#cc80ff' },
+];
+let mmEdges = [
+  [1,2],[1,3],[1,4],[1,5],
+  [2,6],[2,7],[2,8],[3,9],[3,10],[4,11],[4,12],[5,13]
+];
+let mmNextId = 14;
+let mmDragging = null;
+let mmDragOffset = { x:0, y:0 };
+let mmSvg = null;
+let mmInitialized = false;
+
+function initMindmap() {
+  if(mmInitialized) return;
+  mmInitialized = true;
+  mmSvg = document.getElementById('mindmap-canvas');
+  renderMindmap();
+
+  mmSvg.addEventListener('dblclick', e => {
+    if(e.target === mmSvg || e.target.tagName === 'line') {
+      const rect = mmSvg.getBoundingClientRect();
+      const label = prompt('Node-Name:');
+      if(!label) return;
+      mmNodes.push({ id: mmNextId++, x: e.clientX - rect.left, y: e.clientY - rect.top, label, color: '#00d4ff' });
+      renderMindmap();
+    }
+  });
+}
+
+function renderMindmap() {
+  if(!mmSvg) return;
+  const W = mmSvg.clientWidth || 800;
+  const H = mmSvg.clientHeight || 500;
+  mmSvg.innerHTML = '';
+
+  // Edges
+  const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+  const filter = document.createElementNS('http://www.w3.org/2000/svg','filter');
+  filter.setAttribute('id','glow');
+  filter.innerHTML = '<feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>';
+  defs.appendChild(filter);
+  mmSvg.appendChild(defs);
+
+  mmEdges.forEach(([a,b]) => {
+    const na = mmNodes.find(n => n.id === a);
+    const nb = mmNodes.find(n => n.id === b);
+    if(!na || !nb) return;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', na.x); line.setAttribute('y1', na.y);
+    line.setAttribute('x2', nb.x); line.setAttribute('y2', nb.y);
+    line.setAttribute('stroke', 'rgba(0,180,255,0.25)');
+    line.setAttribute('stroke-width', '1.5');
+    line.setAttribute('stroke-dasharray', '4 3');
+    mmSvg.appendChild(line);
+  });
+
+  // Nodes
+  mmNodes.forEach(node => {
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.style.cursor = 'grab';
+
+    const textLen = node.label.length * 7 + 24;
+    const rw = Math.max(80, textLen);
+    const rh = node.root ? 36 : 28;
+
+    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x', node.x - rw/2);
+    rect.setAttribute('y', node.y - rh/2);
+    rect.setAttribute('width', rw);
+    rect.setAttribute('height', rh);
+    rect.setAttribute('rx', 4);
+    rect.setAttribute('fill', node.root ? 'rgba(0,30,60,0.95)' : 'rgba(10,22,40,0.9)');
+    rect.setAttribute('stroke', node.color);
+    rect.setAttribute('stroke-width', node.root ? '2' : '1');
+    if(node.root) rect.setAttribute('filter','url(#glow)');
+
+    const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.setAttribute('x', node.x);
+    text.setAttribute('y', node.y + 1);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.setAttribute('fill', node.color);
+    text.setAttribute('font-family', node.root ? 'Orbitron' : 'Rajdhani');
+    text.setAttribute('font-size', node.root ? '13' : '11');
+    text.setAttribute('font-weight', '700');
+    text.setAttribute('letter-spacing', '1');
+    text.textContent = node.label;
+
+    g.appendChild(rect);
+    g.appendChild(text);
+
+    // Drag
+    g.addEventListener('mousedown', e => {
+      mmDragging = node.id;
+      const rect2 = mmSvg.getBoundingClientRect();
+      mmDragOffset.x = e.clientX - rect2.left - node.x;
+      mmDragOffset.y = e.clientY - rect2.top - node.y;
+      e.stopPropagation();
+    });
+
+    mmSvg.appendChild(g);
+  });
+
+  mmSvg.onmousemove = e => {
+    if(!mmDragging) return;
+    const node = mmNodes.find(n => n.id === mmDragging);
+    if(!node) return;
+    const rect2 = mmSvg.getBoundingClientRect();
+    node.x = e.clientX - rect2.left - mmDragOffset.x;
+    node.y = e.clientY - rect2.top - mmDragOffset.y;
+    renderMindmap();
+  };
+  mmSvg.onmouseup = () => { mmDragging = null; };
+}
+
+function addMindNode() {
+  const label = prompt('Neuer Node:');
+  if(!label) return;
+  mmNodes.push({ id: mmNextId++, x: 400 + Math.random()*200-100, y: 300 + Math.random()*100-50, label, color: '#00d4ff' });
+  renderMindmap();
+}
+function resetMindmap() {
+  mmInitialized = false;
+  mmNodes = [
+    { id:1, x:400, y:280, label:'PROJEKTE', root:true, color:'#00d4ff' },
+    { id:2, x:220, y:150, label:'GMod Addons', color:'#ff9500' },
+    { id:3, x:580, y:150, label:'Schule', color:'#00d4ff' },
+    { id:4, x:220, y:400, label:'Code', color:'#00ff88' },
+    { id:5, x:580, y:400, label:'Persönlich', color:'#cc80ff' },
+  ];
+  mmEdges = [[1,2],[1,3],[1,4],[1,5]];
+  mmNextId = 6;
+  initMindmap();
+}
+
+// ─── GMOD NOTES ───
+let gmodNotes = ['wh_hud_sv Debug: AddCSLuaFile() checken', 'Net.Receive immer SV-side aufrufen'];
+function renderGmodNotes() {
+  const el = document.getElementById('gmod-notes-list');
+  if(!el) return;
+  el.innerHTML = gmodNotes.map((n,i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(26,58,92,0.3);font-size:11px;color:var(--text);">
+      <span style="color:var(--cyan);font-family:Share Tech Mono;">//</span>
+      <span style="flex:1">${n}</span>
+      <span onclick="removeGmodNote(${i})" style="cursor:pointer;color:var(--text-dim);font-size:10px;">✕</span>
+    </div>
+  `).join('');
+}
+function addGmodNote() {
+  const input = document.getElementById('gmod-note-input');
+  const val = input.value.trim();
+  if(!val) return;
+  gmodNotes.push(val);
+  input.value = '';
+  renderGmodNotes();
+}
+function removeGmodNote(i) { gmodNotes.splice(i,1); renderGmodNotes(); }
+renderGmodNotes();
+</script>
+
+</body>
+</html>
