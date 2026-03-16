@@ -5,7 +5,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PLANR — Knaxi's Command Center</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js" crossorigin="anonymous"></script>
 <style>
   :root {
     --bg: #080c12;
@@ -594,6 +595,286 @@ color:var(--text-bright); font-family:‘Rajdhani’; font-size:14px; padding:8p
 }
 .modal-input:focus { border-color:var(--cyan2); }
 .modal-actions { display:flex; gap:8px; margin-top:16px; justify-content:flex-end; }
+
+/* ── MATHE-EDITOR VIEW ── */
+#view-mathe { overflow-y: auto; }
+.mathe-wrap {
+  padding: 24px;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+}
+.mathe-palette {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.mathe-palette-section { margin-bottom: 14px; }
+.mathe-palette-section:last-child { margin-bottom: 0; }
+.mathe-palette-label {
+  font-family: 'Share Tech Mono';
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.mathe-btn-row { display: flex; flex-wrap: wrap; gap: 5px; }
+.mathe-sym-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  padding: 6px 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.mathe-sym-btn:hover {
+  background: var(--cyan-dim);
+  border-color: var(--cyan2);
+  color: var(--cyan);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0,212,255,0.2);
+}
+.mathe-sym-btn .sym-preview { font-size: 1rem; line-height: 1; }
+.mathe-sym-btn .sym-code { font-size: 0.63rem; color: var(--text-dim); }
+.mathe-sym-btn:hover .sym-code { color: var(--cyan); }
+
+.mathe-editor-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.mathe-editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+}
+.mathe-editor-toolbar span {
+  font-family: 'Share Tech Mono';
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.mathe-toolbar-actions { display: flex; gap: 7px; }
+.mathe-action-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 3px 9px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-transform: uppercase;
+}
+.mathe-action-btn:hover { border-color: var(--cyan2); color: var(--cyan); }
+#mathe-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-bright);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  padding: 14px;
+  resize: vertical;
+  min-height: 80px;
+}
+#mathe-input::placeholder { color: var(--text-dim); }
+
+.mathe-preview-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.mathe-preview-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+}
+.mathe-preview-toolbar span {
+  font-family: 'Share Tech Mono';
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+#mathe-preview-area {
+  padding: 22px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  overflow-x: auto;
+  color: var(--text-bright);
+}
+#mathe-preview-area.empty { color: var(--text-dim); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+#mathe-preview-area .mathe-error { color: var(--red); font-size: 0.78rem; font-family: 'JetBrains Mono', monospace; }
+
+.mathe-copy-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.mathe-copy-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+}
+.mathe-copy-card h3 {
+  font-family: 'Share Tech Mono';
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.mathe-copy-box { display: flex; gap: 7px; }
+.mathe-copy-text {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  padding: 6px 9px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.mathe-copy-btn {
+  background: var(--cyan2);
+  border: none;
+  border-radius: 4px;
+  color: var(--bg);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.mathe-copy-btn:hover { background: var(--cyan); }
+.mathe-copy-btn.copied { background: var(--green); color: var(--bg); }
+
+.mathe-saved-section {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+.mathe-saved-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.mathe-saved-header h3 {
+  font-family: 'Share Tech Mono';
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.mathe-save-btn {
+  background: transparent;
+  border: 1px solid var(--cyan2);
+  border-radius: 4px;
+  color: var(--cyan);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 4px 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-transform: uppercase;
+}
+.mathe-save-btn:hover { background: var(--cyan-dim); }
+.mathe-saved-list { display: flex; flex-direction: column; gap: 7px; }
+.mathe-saved-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 11px;
+  animation: fadeInM 0.2s ease;
+}
+@keyframes fadeInM { from { opacity:0; transform:translateY(-3px); } to { opacity:1; transform:none; } }
+.mathe-saved-item .msaved-code {
+  flex: 1;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--cyan);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mathe-saved-item .mload-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-size: 10px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 2px 7px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-transform: uppercase;
+}
+.mathe-saved-item .mload-btn:hover { border-color: var(--cyan2); color: var(--cyan); }
+.mathe-saved-item .mdel-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 0.82rem;
+  padding: 2px 4px;
+  transition: color 0.15s;
+}
+.mathe-saved-item .mdel-btn:hover { color: var(--red); }
+.mathe-empty-saved {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  font-family: 'JetBrains Mono', monospace;
+  text-align: center;
+  padding: 10px;
+}
+@media (max-width: 560px) { .mathe-copy-section { grid-template-columns: 1fr; } }
 </style>
 
 </head>
@@ -617,6 +898,9 @@ color:var(--text-bright); font-family:‘Rajdhani’; font-size:14px; padding:8p
     </button>
     <button onclick="showView('gmod', this)">
       <span class="nav-icon">⬡</span> GMOD ADDON
+    </button>
+    <button onclick="showView('mathe', this)">
+      <span class="nav-icon">∑</span> RECHENSCHREIBER
     </button>
   </nav>
   <div class="header-right">
@@ -954,6 +1238,166 @@ color:var(--text-bright); font-family:‘Rajdhani’; font-size:14px; padding:8p
       </div>
 
     </div>
+  </div>
+</div>
+
+<!-- MATHE-EDITOR VIEW -->
+<div class="view" id="view-mathe">
+  <div class="view-header">
+    <div>
+      <div class="view-title">RECHENSCHREIBER</div>
+      <div class="view-subtitle">LaTeX Formel-Editor · GoodNotes-ready</div>
+    </div>
+  </div>
+  <div class="mathe-wrap">
+
+    <!-- Symbol Palette -->
+    <div class="mathe-palette">
+      <div class="mathe-palette-section">
+        <div class="mathe-palette-label">Mengen &amp; Zahlenmengen</div>
+        <div class="mathe-btn-row">
+          <button class="mathe-sym-btn" onclick="matheInsert('\\in')"><span class="sym-preview">∈</span><span class="sym-code">\in</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\notin')"><span class="sym-preview">∉</span><span class="sym-code">\notin</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\subset')"><span class="sym-preview">⊂</span><span class="sym-code">\subset</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\subseteq')"><span class="sym-preview">⊆</span><span class="sym-code">\subseteq</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\mathbb{R}')"><span class="sym-preview">ℝ</span><span class="sym-code">\mathbb{R}</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\mathbb{N}')"><span class="sym-preview">ℕ</span><span class="sym-code">\mathbb{N}</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\mathbb{Z}')"><span class="sym-preview">ℤ</span><span class="sym-code">\mathbb{Z}</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\mathbb{Q}')"><span class="sym-preview">ℚ</span><span class="sym-code">\mathbb{Q}</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\mathbb{C}')"><span class="sym-preview">ℂ</span><span class="sym-code">\mathbb{C}</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\emptyset')"><span class="sym-preview">∅</span><span class="sym-code">\emptyset</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\cup')"><span class="sym-preview">∪</span><span class="sym-code">\cup</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\cap')"><span class="sym-preview">∩</span><span class="sym-code">\cap</span></button>
+        </div>
+      </div>
+      <div class="mathe-palette-section">
+        <div class="mathe-palette-label">Vergleich &amp; Logik</div>
+        <div class="mathe-btn-row">
+          <button class="mathe-sym-btn" onclick="matheInsert('\\neq')"><span class="sym-preview">≠</span><span class="sym-code">\neq</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\leq')"><span class="sym-preview">≤</span><span class="sym-code">\leq</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\geq')"><span class="sym-preview">≥</span><span class="sym-code">\geq</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\approx')"><span class="sym-preview">≈</span><span class="sym-code">\approx</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\equiv')"><span class="sym-preview">≡</span><span class="sym-code">\equiv</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\Rightarrow')"><span class="sym-preview">⇒</span><span class="sym-code">\Rightarrow</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\Leftrightarrow')"><span class="sym-preview">⇔</span><span class="sym-code">\Leftrightarrow</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\forall')"><span class="sym-preview">∀</span><span class="sym-code">\forall</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\exists')"><span class="sym-preview">∃</span><span class="sym-code">\exists</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\neg')"><span class="sym-preview">¬</span><span class="sym-code">\neg</span></button>
+        </div>
+      </div>
+      <div class="mathe-palette-section">
+        <div class="mathe-palette-label">Hochgestellt &amp; Tiefgestellt</div>
+        <div class="mathe-btn-row">
+          <button class="mathe-sym-btn" onclick="matheWrap('^{', '}')"><span class="sym-preview">x²</span><span class="sym-code">^{}</span></button>
+          <button class="mathe-sym-btn" onclick="matheWrap('_{', '}')"><span class="sym-preview">x₁</span><span class="sym-code">_{}</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('^{2}')"><span class="sym-preview">²</span><span class="sym-code">^2</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('^{3}')"><span class="sym-preview">³</span><span class="sym-code">^3</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('^{n}')"><span class="sym-preview">ⁿ</span><span class="sym-code">^n</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('^{-1}')"><span class="sym-preview">⁻¹</span><span class="sym-code">^{-1}</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('_{0}')"><span class="sym-preview">₀</span><span class="sym-code">_0</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('_{n}')"><span class="sym-preview">ₙ</span><span class="sym-code">_n</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('_{i}')"><span class="sym-preview">ᵢ</span><span class="sym-code">_i</span></button>
+        </div>
+      </div>
+      <div class="mathe-palette-section">
+        <div class="mathe-palette-label">Brüche, Wurzeln &amp; Operatoren</div>
+        <div class="mathe-btn-row">
+          <button class="mathe-sym-btn" onclick="matheWrap('\\frac{', '}{b}')"><span class="sym-preview">a/b</span><span class="sym-code">\frac</span></button>
+          <button class="mathe-sym-btn" onclick="matheWrap('\\sqrt{', '}')"><span class="sym-preview">√</span><span class="sym-code">\sqrt</span></button>
+          <button class="mathe-sym-btn" onclick="matheWrap('\\sqrt[n]{', '}')"><span class="sym-preview">ⁿ√</span><span class="sym-code">\sqrt[n]</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\sum_{i=1}^{n}')"><span class="sym-preview">Σ</span><span class="sym-code">\sum</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\prod_{i=1}^{n}')"><span class="sym-preview">Π</span><span class="sym-code">\prod</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\int')"><span class="sym-preview">∫</span><span class="sym-code">\int</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\lim_{x \\to \\infty}')"><span class="sym-preview">lim</span><span class="sym-code">\lim</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\infty')"><span class="sym-preview">∞</span><span class="sym-code">\infty</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\pm')"><span class="sym-preview">±</span><span class="sym-code">\pm</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\cdot')"><span class="sym-preview">·</span><span class="sym-code">\cdot</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\times')"><span class="sym-preview">×</span><span class="sym-code">\times</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\div')"><span class="sym-preview">÷</span><span class="sym-code">\div</span></button>
+        </div>
+      </div>
+      <div class="mathe-palette-section">
+        <div class="mathe-palette-label">Griechische Buchstaben</div>
+        <div class="mathe-btn-row">
+          <button class="mathe-sym-btn" onclick="matheInsert('\\alpha')"><span class="sym-preview">α</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\beta')"><span class="sym-preview">β</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\gamma')"><span class="sym-preview">γ</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\delta')"><span class="sym-preview">δ</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\epsilon')"><span class="sym-preview">ε</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\lambda')"><span class="sym-preview">λ</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\mu')"><span class="sym-preview">μ</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\pi')"><span class="sym-preview">π</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\sigma')"><span class="sym-preview">σ</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\theta')"><span class="sym-preview">θ</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\phi')"><span class="sym-preview">φ</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\omega')"><span class="sym-preview">ω</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\Delta')"><span class="sym-preview">Δ</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\Sigma')"><span class="sym-preview">Σ</span></button>
+        </div>
+      </div>
+      <div class="mathe-palette-section">
+        <div class="mathe-palette-label">Klammern &amp; Struktur</div>
+        <div class="mathe-btn-row">
+          <button class="mathe-sym-btn" onclick="matheWrap('\\left(', '\\right)')"><span class="sym-preview">(·)</span><span class="sym-code">\left( \right)</span></button>
+          <button class="mathe-sym-btn" onclick="matheWrap('\\left[', '\\right]')"><span class="sym-preview">[·]</span><span class="sym-code">\left[ \right]</span></button>
+          <button class="mathe-sym-btn" onclick="matheWrap('\\left\\{', '\\right\\}')"><span class="sym-preview">{·}</span><span class="sym-code">\left\{ \right\}</span></button>
+          <button class="mathe-sym-btn" onclick="matheWrap('\\left|', '\\right|')"><span class="sym-preview">|·|</span><span class="sym-code">|·|</span></button>
+          <button class="mathe-sym-btn" onclick="matheWrap('\\overline{', '}')"><span class="sym-preview">x̄</span><span class="sym-code">\overline</span></button>
+          <button class="mathe-sym-btn" onclick="matheWrap('\\vec{', '}')"><span class="sym-preview">→v</span><span class="sym-code">\vec</span></button>
+          <button class="mathe-sym-btn" onclick="matheWrap('\\hat{', '}')"><span class="sym-preview">x̂</span><span class="sym-code">\hat</span></button>
+          <button class="mathe-sym-btn" onclick="matheInsert('\\\\')"><span class="sym-preview">↵</span><span class="sym-code">Zeilenumbruch</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Editor -->
+    <div class="mathe-editor-wrap">
+      <div class="mathe-editor-toolbar">
+        <span>LaTeX Eingabe</span>
+        <div class="mathe-toolbar-actions">
+          <button class="mathe-action-btn" onclick="matheClear()">Leeren</button>
+          <button class="mathe-action-btn" onclick="matheWrapDisplay()">Display $$</button>
+          <button class="mathe-action-btn" onclick="matheWrapInline()">Inline $</button>
+        </div>
+      </div>
+      <textarea id="mathe-input" placeholder="Formel eingeben z.B.: x \in \mathbb{R}, \quad x \neq 0" rows="3" oninput="matheRenderPreview()"></textarea>
+    </div>
+
+    <!-- Preview -->
+    <div class="mathe-preview-wrap">
+      <div class="mathe-preview-toolbar"><span>Vorschau</span></div>
+      <div id="mathe-preview-area" class="empty">Vorschau erscheint hier…</div>
+    </div>
+
+    <!-- Copy Outputs -->
+    <div class="mathe-copy-section">
+      <div class="mathe-copy-card">
+        <h3>LaTeX für GoodNotes</h3>
+        <div class="mathe-copy-box">
+          <div class="mathe-copy-text" id="mathe-latex-display">—</div>
+          <button class="mathe-copy-btn" id="mathe-btn-latex" onclick="matheCopyLatex()">Kopieren</button>
+        </div>
+      </div>
+      <div class="mathe-copy-card">
+        <h3>Display-LaTeX ($$…$$)</h3>
+        <div class="mathe-copy-box">
+          <div class="mathe-copy-text" id="mathe-display-display">—</div>
+          <button class="mathe-copy-btn" id="mathe-btn-display" onclick="matheCopyDisplay()">Kopieren</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved Formulas -->
+    <div class="mathe-saved-section">
+      <div class="mathe-saved-header">
+        <h3>Gespeicherte Formeln</h3>
+        <button class="mathe-save-btn" onclick="matheSaveFormula()">+ Speichern</button>
+      </div>
+      <div class="mathe-saved-list" id="mathe-saved-list">
+        <div class="mathe-empty-saved">Noch keine Formeln gespeichert.</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1433,6 +1877,137 @@ function addGmodNote() {
 }
 function removeGmodNote(i) { gmodNotes.splice(i,1); renderGmodNotes(); }
 renderGmodNotes();
+
+// ─── MATHE-EDITOR ───
+const matheInput = document.getElementById('mathe-input');
+const mathePreviewArea = document.getElementById('mathe-preview-area');
+const matheLatexDisplay = document.getElementById('mathe-latex-display');
+const matheDisplayDisplay = document.getElementById('mathe-display-display');
+let matheSavedFormulas = JSON.parse(localStorage.getItem('mathe_formulas') || '[]');
+
+function matheInsert(text) {
+  const start = matheInput.selectionStart;
+  const end = matheInput.selectionEnd;
+  matheInput.value = matheInput.value.substring(0, start) + text + matheInput.value.substring(end);
+  matheInput.selectionStart = matheInput.selectionEnd = start + text.length;
+  matheInput.focus();
+  matheRenderPreview();
+}
+
+function matheWrap(before, after) {
+  const start = matheInput.selectionStart;
+  const end = matheInput.selectionEnd;
+  const selected = matheInput.value.substring(start, end);
+  const newText = before + (selected || '') + after;
+  matheInput.value = matheInput.value.substring(0, start) + newText + matheInput.value.substring(end);
+  matheInput.selectionStart = matheInput.selectionEnd = start + newText.length;
+  matheInput.focus();
+  matheRenderPreview();
+}
+
+function matheClear() {
+  matheInput.value = '';
+  mathePreviewArea.innerHTML = 'Vorschau erscheint hier…';
+  mathePreviewArea.className = 'empty';
+  matheLatexDisplay.textContent = '—';
+  matheDisplayDisplay.textContent = '—';
+}
+
+function matheWrapDisplay() {
+  matheInput.value = '$$\n' + matheInput.value.trim() + '\n$$';
+  matheRenderPreview();
+}
+
+function matheWrapInline() {
+  matheInput.value = '$' + matheInput.value.trim() + '$';
+  matheRenderPreview();
+}
+
+let matheRenderTimeout;
+function matheRenderPreview() {
+  clearTimeout(matheRenderTimeout);
+  matheRenderTimeout = setTimeout(() => {
+    const raw = matheInput.value.trim();
+    matheLatexDisplay.textContent = raw || '—';
+    matheDisplayDisplay.textContent = raw ? `$$${raw}$$` : '—';
+    if (!raw) {
+      mathePreviewArea.innerHTML = 'Vorschau erscheint hier…';
+      mathePreviewArea.className = 'empty';
+      return;
+    }
+    let toRender = raw;
+    if (!toRender.startsWith('$') && !toRender.startsWith('\\[')) {
+      toRender = '$$' + toRender + '$$';
+    }
+    mathePreviewArea.innerHTML = toRender;
+    mathePreviewArea.className = '';
+    if (window.MathJax) {
+      MathJax.typesetPromise([mathePreviewArea]).catch(() => {
+        mathePreviewArea.innerHTML = '<span class="mathe-error">Syntax-Fehler in der Formel</span>';
+      });
+    }
+  }, 200);
+}
+
+function matheCopyLatex() {
+  const text = matheInput.value.trim();
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => matheFlash('mathe-btn-latex'));
+}
+
+function matheCopyDisplay() {
+  const text = matheInput.value.trim();
+  if (!text) return;
+  navigator.clipboard.writeText(`$$${text}$$`).then(() => matheFlash('mathe-btn-display'));
+}
+
+function matheFlash(btnId) {
+  const btn = document.getElementById(btnId);
+  btn.textContent = '✓ Kopiert!';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Kopieren'; btn.classList.remove('copied'); }, 1500);
+}
+
+function matheSaveFormula() {
+  const val = matheInput.value.trim();
+  if (!val) return;
+  matheSavedFormulas.unshift(val);
+  if (matheSavedFormulas.length > 20) matheSavedFormulas = matheSavedFormulas.slice(0, 20);
+  localStorage.setItem('mathe_formulas', JSON.stringify(matheSavedFormulas));
+  matheRenderSaved();
+}
+
+function matheLoadFormula(idx) {
+  matheInput.value = matheSavedFormulas[idx];
+  matheRenderPreview();
+  matheInput.focus();
+}
+
+function matheDeleteFormula(idx) {
+  matheSavedFormulas.splice(idx, 1);
+  localStorage.setItem('mathe_formulas', JSON.stringify(matheSavedFormulas));
+  matheRenderSaved();
+}
+
+function matheEscapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function matheRenderSaved() {
+  const list = document.getElementById('mathe-saved-list');
+  if (matheSavedFormulas.length === 0) {
+    list.innerHTML = '<div class="mathe-empty-saved">Noch keine Formeln gespeichert.</div>';
+    return;
+  }
+  list.innerHTML = matheSavedFormulas.map((f, i) => `
+    <div class="mathe-saved-item">
+      <span class="msaved-code">${matheEscapeHtml(f)}</span>
+      <button class="mload-btn" onclick="matheLoadFormula(${i})">Laden</button>
+      <button class="mdel-btn" onclick="matheDeleteFormula(${i})" title="Löschen">✕</button>
+    </div>
+  `).join('');
+}
+matheRenderSaved();
 </script>
 
 </body>
